@@ -6,6 +6,7 @@
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
 
+
 class food {
     private:
         int x;
@@ -52,7 +53,12 @@ public:
     int get_y(){
         return this->y[0];
     }
-    
+    std::vector<int> get_x_segments(){
+        return this->x;
+    }
+    std::vector<int> get_y_segments(){
+        return this->y;
+    }
 
     void draw() {
         std::cout<<"x: "<<this->x[0]<<" y: "<<this->y[0];
@@ -104,7 +110,6 @@ public:
                 direction = DOWN; 
                 break;
             case KEY_LEFT:  
-                this->add_segments();
                 if (direction != RIGHT) 
                 direction = LEFT; 
                 break;
@@ -116,8 +121,9 @@ public:
     }
 };
 
-bool collision(int x1,int x2,int y1,int y2){
-    if( x1 ==  x2 &&  y1 ==  y2){
+
+bool collision(int x1,int x2){
+    if( x1 == x2){
         return true;
     }
     else{
@@ -126,9 +132,34 @@ bool collision(int x1,int x2,int y1,int y2){
 }
 
 
+void game_over(){
+    endwin();
+    std::cout<<"Game Over";
+    exit(0);
+}
 
-int main() {
-    
+
+void check_gameover(int fx, int fy,std::vector<int> sx,std::vector<int> sy){
+    for(int i = 2; i < sx.size();i++){
+        if(collision(sx[0],sx[i]) && collision(sy[0],sy[i])){
+            game_over();
+        }
+    }
+
+    if (sx[0] < 0 || sx[0] >= COLS || sy[0] < 0 || sy[0] >= LINES) {
+    game_over();
+    }
+}
+
+
+
+void draw_score(int score){
+    mvprintw(0,0,"Score: %d",score);
+}
+
+
+void game_loop(){
+    int score = 0;    
     initscr();  
     curs_set(0);
     noecho();
@@ -139,16 +170,24 @@ int main() {
         clear();          
         snake.draw();     
         food.draw();
+        draw_score(score);
         refresh();        
         timeout(100);   
         snake.keybindings();
-    snake.move();
-    snake.move_segments();
-    if(collision(snake.get_x(),food.get_x(),snake.get_y(),food.get_y())){
-        food.random_xy();
-        snake.add_segments();   
+        snake.move();
+        snake.move_segments();
+        check_gameover(food.get_x(),food.get_y(),snake.get_x_segments(),snake.get_y_segments());
+        if(collision(snake.get_x(),food.get_x()) and collision(snake.get_y(),food.get_y())){
+            food.random_xy();
+            snake.add_segments();   
+            score++;
+        }
     }
 }
-    endwin();             
+
+
+
+int main() {
+    game_loop();
     return 0;
    }
