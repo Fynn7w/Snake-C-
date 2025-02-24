@@ -6,6 +6,17 @@
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
 
+void change_color(short color){
+        start_color();
+        use_default_colors(); //needed for init_pair method parameter:-1 
+        init_pair(1,color, -1);// -1 for standart set background in terminal(unix based)
+        attron(COLOR_PAIR(1)); 
+}
+
+void reset_color(){
+    attroff(COLOR_PAIR(1));
+}
+
 
 class food {
     private:
@@ -19,15 +30,21 @@ class food {
         }
         
         void random_xy(){
-            this->x = rand() % 20;
-            this->y = rand() % 20;
+            this->x  = rand() % 20;
+            this->y  = rand() % 20;
+
         }
+
         void draw(){
-            mvprintw(this->y, this->x, "O");
+            //change_color(COLOR_RED);
+            mvprintw(this->y, this->x, "O0");
+            //reset_color();
         }
+
         int get_x(){
             return this->x;
         }
+        
         int get_y(){
             return this->y;
         }
@@ -63,7 +80,7 @@ public:
     void draw() {
         std::cout<<"x: "<<this->x[0]<<" y: "<<this->y[0];
         for(int i =0;i < this->x.size();i++){
-        mvprintw(this->y[i], this->x[i], "#");
+        mvprintw(this->y[i], this->x[i], "##");
         }
     }
     
@@ -154,21 +171,56 @@ void check_gameover(int fx, int fy,std::vector<int> sx,std::vector<int> sy){
 
 
 void draw_score(int score){
-    mvprintw(0,0,"Score: %d",score);
+    mvprintw(10,70,"Score: %d",score);
 }
+
+
+void grid(int width, int height,std::string choice){
+    int start_value_x = 0;
+    int last_value_x = 50;//width
+    int start_value_y = 4;
+    int last_value_y = 20; // height
+    change_color(COLOR_MAGENTA);
+    if(choice=="full"){
+        for(int z = 0; z < width;z++){
+            for(int i = 0; i < height; i++)
+                if(z%1==0){
+                    mvprintw(i,start_value_x+z,"|");
+                }
+            }
+        }
+    if(choice=="1"){
+        mvprintw(start_value_y,start_value_x,"--------------------------------------------------");
+        mvprintw(last_value_y,start_value_x,"---------------------------------------------------");
+        for(int i = start_value_y; i < last_value_y; i++){
+                mvprintw(i,start_value_x,"|");
+            }
+        for(int i = start_value_y; i < last_value_y; i++){
+            mvprintw(i,last_value_x,"|");
+            }
+    reset_color();
+}
+}   
+
+
 
 
 void game_loop(){
     int score = 0;    
+    int width = 50;
+    int height = 20;
     initscr();  
     curs_set(0);
     noecho();
     keypad(stdscr, TRUE); 
-    Snake snake(10, 10);
+    Snake snake(11, 11);
     food food(20,20);
+    snake.add_segments(); 
+    snake.add_segments();
     while (true) {
-        clear();          
-        snake.draw();     
+        clear();    
+        //grid(width,height,"1");   
+        snake.draw();   
         food.draw();
         draw_score(score);
         refresh();        
@@ -179,11 +231,14 @@ void game_loop(){
         check_gameover(food.get_x(),food.get_y(),snake.get_x_segments(),snake.get_y_segments());
         if(collision(snake.get_x(),food.get_x()) and collision(snake.get_y(),food.get_y())){
             food.random_xy();
-            snake.add_segments();   
+            snake.add_segments();  
+            width = width -1;
+            height = height -1;
             score++;
         }
     }
 }
+
 
 
 
